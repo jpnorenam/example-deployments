@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: postgraphile
+  name: postgraphile
+  namespace: postgraphile
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: postgraphile
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: postgraphile
+    spec:
+      containers:
+      - name: postgraphile
+        image: graphile/postgraphile
+        args:
+        - -c
+        - postgres://postgres:password@timescaledb-cluster.timescaledb.svc.cluster.local:5432/sogno?ssl=true
+        - -s
+        - villas-demo
+        - --enhance-graphiql
+        - -l
+        - 200kB
+        env:
+        - name: NODE_TLS_REJECT_UNAUTHORIZED
+          value: '0'
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: timescaledb-cluster-certs
+          mountPath: /var/private/ssl/
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: timescaledb-cluster-certs
+        secret:
+          secretName: timescaledb-cluster-certs

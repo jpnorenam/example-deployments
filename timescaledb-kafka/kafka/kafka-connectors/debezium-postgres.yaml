@@ -1,0 +1,19 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: timescaledb-villas-kafka-node-source
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector
+  tasksMax: 1
+  config:
+    database.hostname: timescaledb-cluster.timescaledb.svc.cluster.local
+    database.port: 5432
+    database.user: postgres
+    database.password: password     # better use a env var or a secret
+    database.server.name: timescaledb-cluster
+    database.dbname: sogno
+    plugin.name: pgoutput
+    table.include.list: villas-demo.topic1, villas-demo.topic2

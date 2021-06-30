@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: kafka
+  name: kafka-schema-registry
+  labels:
+    app.kubernetes.io/component: kafka-schema-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: kafka-schema-registry
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: kafka-schema-registry
+    spec:
+      containers:
+      - name: schema-registry
+        image: confluentinc/cp-schema-registry:latest
+        ports:
+        - containerPort: 8081
+        imagePullPolicy: Always
+        env:
+        - name: SCHEMA_REGISTRY_HOST_NAME
+          value: kafka-schema-registry-client.kafka.svc.cluster.local
+        - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+          value: PLAINTEXT://kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+        # - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+        #   value: SSL://kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+        - name: SCHEMA_REGISTRY_LISTENERS
+          value: http://0.0.0.0:8081
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC
+          value: __schemas
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: kafka-schema-registry
+  name: kafka-schema-registry-client
+  namespace: kafka
+spec:
+  selector:
+    app.kubernetes.io/component: kafka-schema-registry
+  ports:
+  - port: 8081

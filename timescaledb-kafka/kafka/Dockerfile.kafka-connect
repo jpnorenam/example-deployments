@@ -1,0 +1,62 @@
+FROM strimzi/kafka:0.20.0-kafka-2.6.0
+USER root:root
+
+RUN yum install unzip -y
+
+RUN mkdir -p /opt/kafka/plugins/
+
+######## DEBEZIUM PLUGINS
+RUN mkdir -p /opt/kafka/plugins/debezium/
+WORKDIR /opt/kafka/plugins/debezium/
+
+# DEBEZIUM POSTGRES KAFKA CONNECTOR 
+# https://debezium.io/documentation/reference/1.0/connectors/postgresql.html
+RUN curl -sL https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/1.5.0.Final/debezium-connector-postgres-1.5.0.Final-plugin.tar.gz \
+    -o /opt/kafka/plugins/debezium/debezium-connector-postgres-1.5.0.Final-plugin.tar.gz \
+    && tar xzvf /opt/kafka/plugins/debezium/debezium-connector-postgres-1.5.0.Final-plugin.tar.gz \
+    && rm /opt/kafka/plugins/debezium/debezium-connector-postgres-1.5.0.Final-plugin.tar.gz
+
+######## CAMEL PLUGINS
+RUN mkdir -p /opt/kafka/plugins/camel/
+WORKDIR /opt/kafka/plugins/camel
+
+# CAMEL DEBEZIUM POSTGRES KAFKA CONNECTOR 
+# https://camel.apache.org/camel-kafka-connector/0.4.x/connectors/camel-debezium-postgres-kafka-source-connector.html
+RUN curl -sL https://repo1.maven.org/maven2/org/apache/camel/kafkaconnector/camel-debezium-postgres-kafka-connector/0.4.4/camel-debezium-postgres-kafka-connector-0.4.4-package.tar.gz \
+    -o /opt/kafka/plugins/camel/camel-debezium-postgres-kafka-connector-0.4.4-package.tar.gz \
+    && tar xzvf /opt/kafka/plugins/camel/camel-debezium-postgres-kafka-connector-0.4.4-package.tar.gz \
+    && rm /opt/kafka/plugins/camel/camel-debezium-postgres-kafka-connector-0.4.4-package.tar.gz
+
+# CAMEL JDBC KAFKA CONNECTOR
+# https://camel.apache.org/camel-kafka-connector/0.4.x/connectors/camel-jdbc-kafka-sink-connector.html
+RUN curl -sL https://repo1.maven.org/maven2/org/apache/camel/kafkaconnector/camel-jdbc-kafka-connector/0.4.4/camel-jdbc-kafka-connector-0.4.4-package.tar.gz \
+    -o /opt/kafka/plugins/camel/camel-jdbc-kafka-connector-0.4.4-package.tar.gz \
+    && tar xzvf /opt/kafka/plugins/camel/camel-jdbc-kafka-connector-0.4.4-package.tar.gz \
+    && rm /opt/kafka/plugins/camel/camel-jdbc-kafka-connector-0.4.4-package.tar.gz
+
+######## CONFLUENT PLUGINS
+RUN mkdir -p /opt/kafka/plugins/confluent/
+WORKDIR /opt/kafka/plugins/confluent/
+
+# CONFLUENT JDBC KAFKA CONNECTOR
+# https://docs.confluent.io/kafka-connect-jdbc/current/
+RUN curl -sL https://d1i4a15mxbxib1.cloudfront.net/api/plugins/confluentinc/kafka-connect-jdbc/versions/10.2.0/confluentinc-kafka-connect-jdbc-10.2.0.zip \
+    -o /opt/kafka/plugins/confluent/confluentinc-kafka-connect-jdbc-10.2.0.zip \
+    && unzip -qq /opt/kafka/plugins/confluent/confluentinc-kafka-connect-jdbc-10.2.0.zip -d /opt/kafka/plugins/confluent/ \
+    && rm /opt/kafka/plugins/confluent/confluentinc-kafka-connect-jdbc-10.2.0.zip
+
+# CONFLUENT ELASTICSEARCH CONNECTOR
+# https://docs.confluent.io/kafka-connect-elasticsearch/current/
+RUN curl -sL https://d1i4a15mxbxib1.cloudfront.net/api/plugins/confluentinc/kafka-connect-elasticsearch/versions/11.0.5/confluentinc-kafka-connect-elasticsearch-11.0.5.zip \
+    -o /opt/kafka/plugins/confluent/confluentinc-kafka-connect-elasticsearch-11.0.5.zip \
+    && unzip -qq /opt/kafka/plugins/confluent/confluentinc-kafka-connect-elasticsearch-11.0.5.zip -d /opt/kafka/plugins/confluent/ \
+    && rm /opt/kafka/plugins/confluent/confluentinc-kafka-connect-elasticsearch-11.0.5.zip
+
+# CONFLUENT KAFKA CONNECT JSON SCHEMA CONVERTER
+# https://docs.confluent.io/platform/current/schema-registry/connect.html
+RUN curl -sL https://d1i4a15mxbxib1.cloudfront.net/api/plugins/confluentinc/kafka-connect-json-schema-converter/versions/5.5.4/confluentinc-kafka-connect-json-schema-converter-5.5.4.zip \
+    -o /opt/kafka/plugins/confluent/confluentinc-kafka-connect-json-schema-converter-5.5.4.zip  \
+    && unzip -qq /opt/kafka/plugins/confluent/confluentinc-kafka-connect-json-schema-converter-5.5.4.zip  -d /opt/kafka/plugins/confluent/ \
+    && rm /opt/kafka/plugins/confluent/confluentinc-kafka-connect-json-schema-converter-5.5.4.zip 
+WORKDIR /opt/kafka/
+USER 1001

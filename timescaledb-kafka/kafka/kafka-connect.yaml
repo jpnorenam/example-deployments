@@ -1,0 +1,26 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: kafka-cluster
+  namespace: kafka
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  template:
+    pod:
+      imagePullSecrets:
+      - name: private-container-registry-sogno                    # modify for sogno
+  image: priv-cr-sogno.some-priv-cr.io/sogno/kafka-connect:latest # modify for sogno
+  replicas: 1
+  bootstrapServers: kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
+  config:
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+    config.providers: file
+    config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
+  externalConfiguration:
+    volumes:
+      - name: timescaledb-cluster-credentials
+        secret:
+          secretName: timescaledb-cluster-credentials

@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: node
+  name: node-internal
+  namespace: villas
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: sim-data-12010
+    port: 12010
+    protocol: UDP
+    targetPort: 12010
+  - name: sim-data-12011
+    port: 12011
+    protocol: UDP
+    targetPort: 12011
+  selector:
+    app.kubernetes.io/component: node
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: node
+  name: node-external-np
+  namespace: villas
+spec:
+  type: NodePort
+  ports:
+  - name: sim-data-12008
+    port: 12008
+    protocol: UDP
+    targetPort: 12008
+    nodePort: 31708
+  - name: sim-data-12009
+    port: 12009
+    protocol: UDP
+    targetPort: 12009
+    nodePort: 31709
+  selector:
+    app.kubernetes.io/component: node
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: node
+  name: node-external-lb
+  namespace: villas
+spec:
+  type: LoadBalancer
+  ports:
+  - name: sim-data-12012
+    port: 12012
+    protocol: UDP
+    targetPort: 12012
+  selector:
+    app.kubernetes.io/component: node

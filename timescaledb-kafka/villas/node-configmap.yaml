@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-config
+  namespace: villas
+data:
+  # Update since formats are configurable and more flexible since villas 3e3af620498cc1cc17e5e93bec117d9eab2526e8
+  # see: 
+  # https://git.rwth-aachen.de/acs/public/villas/documentation/-/blob/master/doc/node/formats/JSON.md
+  # also see:
+  # https://git.rwth-aachen.de/acs/public/villas/documentation/-/blob/master/doc/node/Formats.md
+
+  test.conf: |-
+    hugepages = 0
+        
+    nodes = {
+        opal_node = {
+            type = "socket",
+            layer = "udp",
+                
+            in = {
+                address = "*:12008",
+                signals = (
+                    { name = "id", type = "float", enabled = true },
+                    { name = "voltage_a_v", type = "float", enabled = true },
+                    { name = "voltage_b_v", type = "float", enabled = true },
+                    { name = "voltage_c_v", type = "float", enabled = true },
+                    { name = "current_a_a", type = "float", enabled = true },
+                    { name = "current_b_a", type = "float", enabled = true },
+                    { name = "current_c_a", type = "float", enabled = true }
+                )
+            },
+            out = {
+                address = "opal-rt-target:12009"
+            }
+        },
+
+        kafka_node = {
+            type = "kafka",
+            format = "json.kafka",
+
+            server = "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092",
+            protocol = "PLAINTEXT",
+            client_id = "villas-node",
+            
+            timeout = 10,
+
+            in = {
+                consume = "sogno.villas-demo.topic1",
+                group_id = "villas-node",
+                signals = (
+                    { name = "control_signal1", type = "integer", enabled = true },
+                    { name = "control_signal2", type = "integer", enabled = true },
+                    { name = "control_signal3", type = "integer", enabled = true },
+                    { name = "control_signal4", type = "integer", enabled = true }
+                )
+            },
+        
+            out = {
+                produce = "sogno.villas-demo.topic2"
+            }
+        }
+    };
+
+    paths = (
+        {
+            in  = [
+                "opal_node"
+            ],
+            out = [
+                "kafka_node"
+            ]
+
+            hooks = (
+                { type = "print" }
+            )
+        },
+        {
+            out  = [
+                "opal_node"
+            ],
+            in = [
+                "kafka_node"
+            ]
+        }
+    );

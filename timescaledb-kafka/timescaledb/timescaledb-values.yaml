@@ -1,0 +1,65 @@
+replicaCount: 1
+nameOverride: timescaledb
+clusterName: timescaledb-cluster
+
+secretNames:
+  credentials: timescaledb-cluster-credentials
+  certificate: timescaledb-cluster-certs
+
+loadBalancer:
+  enabled: true
+
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 2Gi
+  # requests:
+  #   cpu: 250m
+  #   memory: 1Gi
+
+persistentVolumes:
+  data:
+    enabled: true
+    size: 15Gi
+    storageClass: "managed-nfs-storage"
+    subPath: ""
+    mountPath: "/var/lib/postgresql"
+    annotations: {}
+    accessModes:
+    - ReadWriteOnce
+  wal:
+    enabled: true
+    size: 5Gi
+    subPath: ""
+    storageClass: "managed-nfs-storage"
+    mountPath: "/var/lib/postgresql/wal"
+    annotations: {}
+    accessModes:
+    - ReadWriteOnce
+
+patroni:
+  bootstrap:
+    dcs:
+      postgresql:
+        parameters: 
+          wal_level: logical             
+          max_wal_senders: 1             
+          max_replication_slots: 1
+  postgresql:
+    authentication:
+      replication:
+        username: standby
+      superuser:
+        username: postgres
+    listen: 0.0.0.0:5432
+    pg_hba:
+    - local     all             postgres                              peer
+    - local     all             all                                   md5
+    - hostnossl all,replication all               all                 reject
+    - hostssl   all             all               127.0.0.1/32        md5
+    - hostssl   all             all               ::1/128             md5
+    - hostssl   replication     standby           all                 md5
+    - hostssl   all             all               all                 md5
+    - local     replication     postgres                              trust   
+    - host      replication     postgres          127.0.0.1/32        trust   
+    - host      replication     postgres          ::1/128             trust

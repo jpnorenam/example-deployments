@@ -1,0 +1,9 @@
+helm repo add timescaledb 'https://raw.githubusercontent.com/timescale/timescaledb-kubernetes/master/charts/repo/'
+
+openssl req -x509 -sha256 -nodes -newkey rsa:4096 -days 3650 -subj "/CN=*.timescaledb.svc.cluster.local" -keyout tls.key -out tls.crt
+
+kubectl create secret generic -n timescaledb timescaledb-cluster-certs --from-file=tls.crt=tls.crt --from-file=tls.key=tls.key
+kubectl create secret generic -n kafka timescaledb-cluster-certs --from-file=tls.crt=tls.crt --from-file=tls.key=tls.key
+kubectl create secret generic -n postgraphile timescaledb-cluster-certs --from-file=tls.crt=tls.crt --from-file=tls.key=tls.key
+
+helm install timescaledb-cluster timescaledb/timescaledb-single --namespace timescaledb -f timescaledb-values.yaml
